@@ -1,0 +1,15 @@
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Pie chart, where the slices will be ordered and plotted counter-clockwise:
+
+c_index = df.Transmission.value_counts().index
+c_value = df.Transmission.value_counts().values
+explode = [0.2]*len(c_value)
+fig2, ax2 = plt.subplots(figsize=(8,8))
+ax2.title.set_text('Colors')
+ax2.pie(c_value, explode = explode,labels=c_index, autopct='%1.1f%%',
+        shadow=True, startangle=300)
+ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+plt.show()
