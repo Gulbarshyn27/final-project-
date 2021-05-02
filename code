@@ -1,3 +1,130 @@
+#Go to our google drive
+from google.colab import drive
+drive.mount("/content/drive/",force_remount=True)
+#Specify the location of our storage
+path = r"/content/drive/My Drive/CSS/"
+
+
+
+!pip install fake-useragent
+!pip install bs4
+!pip install requests
+
+
+
+
+
+from bs4 import BeautifulSoup
+import requests
+import pandas as pd
+import time
+from fake_useragent import UserAgent
+
+def get_info(add_url):
+    result = {}
+    home = 'https://kolesa.kz'
+    url = home + add_url
+    ua = UserAgent()
+    headers = {'User-Agent': ua.chrome}
+    response = requests.get(url,headers=headers)
+    response.encoding ='utf8'
+    page = BeautifulSoup(response.text, 'html.parser')
+    try:
+        result['Brand'] = str(page.find('h1', class_='offer__title').find('span').text)
+        result['Model'] = str(page.find('h1', class_='offer__title').find_all('span')[1].text)      
+        result['Year'] = str(page.find('h1', class_='offer__title').find_all('span')[2].text)
+        result['Price'] = str(page.find('div', class_='offer__price').text.replace(u'\xa0', u''))
+    except:
+        pass
+    titles, values = page.find_all('dt'), page.find_all('dd')
+    for i in range(len(titles)):
+        try:
+            result[titles[i].find('span').text.strip()] = values[i].text.strip()
+        except:
+            pass
+    return result
+
+def car_links(i):
+    data = []
+    page = f'Web page scrapping #{i}'
+    print(page)
+    ua = UserAgent()
+    headers = {'User-Agent': ua.chrome}
+    url = 'https://kolesa.kz/cars/?page='+str(i)
+    response = requests.get(url, headers=headers).text
+    soup = BeautifulSoup(response, 'lxml')
+    all_links = soup.find_all('span', class_='a-el-info-title')
+    for link in all_links:
+        link = link.find('a').get('href')
+        data.append(get_info(link))
+    df = pd.DataFrame(data)
+   #df.to_csv(f'page{i}.csv')
+
+start_time = time.time()
+for i in range(999,1000):
+    car_links(i)
+print("--- %s seconds ---" % (round(time.time() - start_time)))
+
+
+
+
+
+import time
+start_time = time.time()
+for i in range(999,1000):
+    car_links(i)
+print("--- %s seconds ---" % (round(time.time() - start_time)))
+
+
+
+
+import pandas as pd
+df = pd.read_csv(path + 'Kolesakz.csv')
+df2 = df
+
+
+df = df.drop(['Unnamed: 0','VIN','Аварийная/Не на ходу','Двигатель'], axis = 1)
+df
+
+
+milage_mean =  df.Milage.dropna().apply(lambda x: int(x.replace(' ','')[:-2])).mean()
+
+mm = str(round(milage_mean)) + ' км'
+
+df.Milage = df.Milage.fillna(mm).apply(lambda x: int(x.replace(' ','')[:-2]))
+
+df.dropna(inplace=True)
+df.Price = df.Price.apply(lambda x: int(x[:-7]))
+
+df.info()
+
+import re
+def clean(x):
+    try:
+        x = int(x)
+        return x
+    except:
+        if x.isdigit():
+            return int(x)
+        else:
+            return 2005
+            
+            
+            
+            
+df.Year = df.Year.apply(clean)  
+ 
+ 
+df["fuel_type"] = df.Volume.apply(lambda x: x.split(' ')[1])
+df["Volume"] = df.Volume.apply(lambda x: float(x.split(' ')[0]))
+
+
+
+df.info()
+
+df
+
+#Analysis data
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
