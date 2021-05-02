@@ -1,0 +1,20 @@
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+#1
+counts = df.Color.value_counts()
+top7 = counts.head(7)
+if len(counts) > 7:
+    top7['остальные {0} цветов'.format(len(counts) - 7)] = sum(counts[7:])
+# temp2.plot(kind='pie',figsize=(20, 10))
+
+c_index = top7.index
+c_value = top7.values
+explode = [0.1]*len(c_value)
+fig2, ax2 = plt.subplots(figsize=(8,8))
+ax2.title.set_text('Colors')
+ax2.pie(c_value, explode= explode, labels=c_index, autopct='%1.1f%%',
+        shadow=True, startangle=90)
+ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+plt.show()
