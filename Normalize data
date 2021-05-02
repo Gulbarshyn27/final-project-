@@ -1,0 +1,39 @@
+import pandas as pd
+df = pd.read_csv(path + 'Kolesakz.csv')
+df2 = df
+
+df = df.drop(['Unnamed: 0','VIN','Аварийная/Не на ходу','Двигатель'], axis = 1)
+df
+
+df.rename(columns={"Город": "City", "Кузов": "Body_type","Объем двигателя, л": "Volume", "Пробег":"Milage","Коробка передач":"Transmission","Руль":"Wheel","Цвет":"Color","Привод":"Drive","Растаможен в Казахстане":"KZ_or_Not"}, inplace = True)
+
+milage_mean =  df.Milage.dropna().apply(lambda x: int(x.replace(' ','')[:-2])).mean()
+
+mm = str(round(milage_mean)) + ' км'
+
+df.Milage = df.Milage.fillna(mm).apply(lambda x: int(x.replace(' ','')[:-2]))
+
+df.dropna(inplace=True)
+df.Price = df.Price.apply(lambda x: int(x[:-7]))
+
+df.info()
+
+import re
+def clean(x):
+    try:
+        x = int(x)
+        return x
+    except:
+        if x.isdigit():
+            return int(x)
+        else:
+            return 2005
+            
+df.Year = df.Year.apply(clean)
+
+df["fuel_type"] = df.Volume.apply(lambda x: x.split(' ')[1])
+df["Volume"] = df.Volume.apply(lambda x: float(x.split(' ')[0]))
+
+df.info()
+
+df
