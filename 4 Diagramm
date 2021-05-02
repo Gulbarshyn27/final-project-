@@ -1,0 +1,7 @@
+import seaborn as sns
+import matplotlib.pyplot as plt
+fig = plt.gcf()
+
+# Change seaborn plot size
+fig.set_size_inches(12, 8)
+sns.scatterplot(data=df, x="Milage", y="Year")
