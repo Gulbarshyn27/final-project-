@@ -1,0 +1,50 @@
+from bs4 import BeautifulSoup
+import requests
+import pandas as pd
+import time
+from fake_useragent import UserAgent
+
+def get_info(add_url):
+    result = {}
+    home = 'https://kolesa.kz'
+    url = home + add_url
+    ua = UserAgent()
+    headers = {'User-Agent': ua.chrome}
+    response = requests.get(url,headers=headers)
+    response.encoding ='utf8'
+    page = BeautifulSoup(response.text, 'html.parser')
+    try:
+        result['Brand'] = str(page.find('h1', class_='offer__title').find('span').text)
+        result['Model'] = str(page.find('h1', class_='offer__title').find_all('span')[1].text)      
+        result['Year'] = str(page.find('h1', class_='offer__title').find_all('span')[2].text)
+        result['Price'] = str(page.find('div', class_='offer__price').text.replace(u'\xa0', u''))
+    except:
+        pass
+    titles, values = page.find_all('dt'), page.find_all('dd')
+    for i in range(len(titles)):
+        try:
+            result[titles[i].find('span').text.strip()] = values[i].text.strip()
+        except:
+            pass
+    return result
+
+def car_links(i):
+    data = []
+    page = f'Web page scrapping #{i}'
+    print(page)
+    ua = UserAgent()
+    headers = {'User-Agent': ua.chrome}
+    url = 'https://kolesa.kz/cars/?page='+str(i)
+    response = requests.get(url, headers=headers).text
+    soup = BeautifulSoup(response, 'lxml')
+    all_links = soup.find_all('span', class_='a-el-info-title')
+    for link in all_links:
+        link = link.find('a').get('href')
+        data.append(get_info(link))
+    df = pd.DataFrame(data)
+   #df.to_csv(f'page{i}.csv')
+
+start_time = time.time()
+for i in range(999,1000):
+    car_links(i)
+print("--- %s seconds ---" % (round(time.time() - start_time)))
